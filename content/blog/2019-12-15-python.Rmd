@@ -7,4 +7,21 @@ categories: []
 tags: []
 description: ''
 ---
-test test test test test to see if any of this is working 
+Recent python work:
+```{python}
+library(reticulate)
+my_seq1 = "ATCATCATG"
+my_seq2 = "CAGCCCAATCAGGCTCTACTGCCACTAAACTTACGCAGGATATATTTACGCCGACGTACT"
+
+def mers(sequence):
+        hold = {}
+        
+        for i in range(len(sequence) - 1):
+            if sequence[i:i + 3] in hold:
+                hold[sequence[i:i +3]] +=1
+            else:
+                hold[sequence[i:i + 3]] = 1
+        return hold
+print(mers(my_seq1))
+print(mers(my_seq2))
+```

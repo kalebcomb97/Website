@@ -1,6 +1,6 @@
 baseurl = "/"
 languageCode = "en-US"
-title = "Chris Turner"
+title = "Kaleb Combs"
 # Enable comments by entering your Disqus shortname
 disqusShortname = ""
 # Enable Google Analytics by entering your tracking code
@@ -13,7 +13,7 @@ theme = "hugo-sustain"
 [params]
   avatar = "Image.jpg"
   author = "Kaleb Combs"
-  description = "Describe your website"
+  description = "I'm a senior Biology student at UT Austin."
 
   # Custom assets can be linked with their paths relative to static/
   custom_css = []

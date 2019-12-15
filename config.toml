@@ -1,4 +1,4 @@
-baseurl = "https://example.com/"
+baseurl = "/"
 languageCode = "en-US"
 title = "Chris Turner"
 # Enable comments by entering your Disqus shortname
@@ -11,8 +11,8 @@ theme = "hugo-sustain"
   post = "/:year/:month/:day/:slug"
 
 [params]
-  avatar = "profile.png"
-  author = "Chris Turner"
+  avatar = "Image.jpg"
+  author = "Kaleb Combs"
   description = "Describe your website"
 
   # Custom assets can be linked with their paths relative to static/

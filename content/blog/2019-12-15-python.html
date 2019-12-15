@@ -10,4 +10,17 @@ description: ''
 
 
 
-<p>test test test test test to see if any of this is working</p>
+<p>Recent python work:</p>
+<p>library(reticulate)
+my_seq1 = “ATCATCATG”
+my_seq2 = “CAGCCCAATCAGGCTCTACTGCCACTAAACTTACGCAGGATATATTTACGCCGACGTACT”</p>
+<p>def mers(sequence):
+hold = {}</p>
+<pre><code>    for i in range(len(sequence) - 1):
+        if sequence[i:i + 3] in hold:
+            hold[sequence[i:i +3]] +=1
+        else:
+            hold[sequence[i:i + 3]] = 1
+    return hold</code></pre>
+<p>print(mers(my_seq1))
+print(mers(my_seq2))</p>

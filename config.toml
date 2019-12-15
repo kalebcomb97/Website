@@ -22,7 +22,6 @@ theme = "hugo-sustain"
 [params.social]
   Github        = "kalebcomb97"
   Email         = "kaleb.combs@g.austincc.edu"
-  LinkedIn      = "KalebCombs"
 
 ## Main Menu
 [[menu.main]]

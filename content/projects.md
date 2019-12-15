@@ -8,7 +8,8 @@ tags:
 title: Projects
 ---
 ## Projects 
-Here are some projects I have been working on:
+Here are two of the projects that I've been working on:
 - [Project 1](/Project1/)
 
 - [Project 2](/Project2/)
+

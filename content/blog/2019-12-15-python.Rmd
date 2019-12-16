@@ -8,8 +8,7 @@ tags: []
 description: ''
 ---
 Recent python work:
-
-library(reticulate)
+```{python}
 my_seq1 = "ATCATCATG"
 my_seq2 = "CAGCCCAATCAGGCTCTACTGCCACTAAACTTACGCAGGATATATTTACGCCGACGTACT"
 
@@ -24,3 +23,4 @@ def mers(sequence):
         return hold
 print(mers(my_seq1))
 print(mers(my_seq2))
+```

@@ -1,7 +1,7 @@
 ---
 title: "Modeling, Inference, Prediction"
 author: "Kaleb Combs kec2746"
-date: "11-17-2019"
+date: "2019-11-17"
 output: html_document
 ---
 
@@ -136,7 +136,7 @@ for(i in 1:5000){
 {hist(rand_dist,main=&quot;&quot;,ylab=&quot;&quot;); abline(v = 31.1,col=&quot;red&quot;)}</code></pre>
 <p><img src="/Project2_files/figure-html/unnamed-chunk-3-1.png" width="768" style="display: block; margin: auto;" /></p>
 <pre class="r"><code>mean(rand_dist&gt;31.1)*2</code></pre>
-<pre><code>## [1] 0.444</code></pre>
+<pre><code>## [1] 0.4264</code></pre>
 <pre class="r"><code>t.test(data=Aids2, length~sex)</code></pre>
 <pre><code>## 
 ##  Welch Two Sample t-test
@@ -206,8 +206,8 @@ ggplot()+geom_point(aes(fitvals,resids))+geom_hline(yintercept=0, col=&quot;red&
  coef(fit)
 })
 samp_distn%&gt;%t%&gt;%as.data.frame%&gt;%summarize_all(sd)</code></pre>
-<pre><code>##   (Intercept)     sexM    age_c sexM:age_c
-## 1     45.7383 46.09238 2.544229   2.650561</code></pre>
+<pre><code>##   (Intercept)    sexM    age_c sexM:age_c
+## 1    46.34967 46.7739 2.592831   2.702936</code></pre>
 <p>In comparison to the original SEs, the bootstrapped SEs have all increased. This should be expected since the p-value has also increased. As we randomly sample with replacement, we move closer to the true popoulation parameter. In comparison to the robust SEs, two values increased and two values decreased.</p>
 <p>Earlier, we found that age was a significant predictor for variation in length of life among men and women. Given the importance of age in patient outcome, can this variable be used in addition to transmission category to successfully classify patient status? Logistic regression can be used to model the probability of survival given T.categ and age as predictors by categorizing patients who fall above a threshold of .5 as “A” (alive) and those who do not as “D” (dead).</p>
 <pre class="r"><code>Aids2%&gt;%mutate(y=ifelse(status==&quot;A&quot;,1,0))-&gt;Aids2

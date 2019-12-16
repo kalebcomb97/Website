@@ -22,6 +22,24 @@ Genomic analysis is yet another example of a task made easier through the use of
     </item>
     
     <item>
+      <title>Modeling, Inference, Prediction</title>
+      <link>/project2/</link>
+      <pubDate>Sun, 17 Nov 2019 00:00:00 +0000</pubDate>
+      
+      <guid>/project2/</guid>
+      <description>library(dplyr)## ## Attaching package: &amp;#39;dplyr&amp;#39;## The following objects are masked from &amp;#39;package:stats&amp;#39;:## ## filter, lag## The following objects are masked from &amp;#39;package:base&amp;#39;:## ## intersect, setdiff, setequal, unionlibrary(tidyverse)## -- Attaching packages ------------- tidyverse 1.3.0 --## &amp;lt;U+2713&amp;gt; ggplot2 3.2.1 &amp;lt;U+2713&amp;gt; purrr 0.3.3## &amp;lt;U+2713&amp;gt; tibble 2.1.3 &amp;lt;U+2713&amp;gt; stringr 1.4.0## &amp;lt;U+2713&amp;gt; tidyr 1.0.0 &amp;lt;U+2713&amp;gt; forcats 0.4.0## &amp;lt;U+2713&amp;gt; readr 1.3.1## -- Conflicts ---------------- tidyverse_conflicts() --## x dplyr::filter() masks stats::filter()## x dplyr::lag() masks stats::lag()library(glmnet)## Loading required package: Matrix## ## Attaching package: &amp;#39;Matrix&amp;#39;## The following objects are masked from &amp;#39;package:tidyr&amp;#39;:## ## expand, pack, unpack## Loaded glmnet 3.</description>
+    </item>
+    
+    <item>
+      <title>Exploratory Data Analysis</title>
+      <link>/project1/</link>
+      <pubDate>Sat, 19 Oct 2019 00:00:00 +0000</pubDate>
+      
+      <guid>/project1/</guid>
+      <description>library(tidyverse)## -- Attaching packages ------------- tidyverse 1.3.0 --## &amp;lt;U+2713&amp;gt; ggplot2 3.2.1 &amp;lt;U+2713&amp;gt; purrr 0.3.3## &amp;lt;U+2713&amp;gt; tibble 2.1.3 &amp;lt;U+2713&amp;gt; dplyr 0.8.3## &amp;lt;U+2713&amp;gt; tidyr 1.0.0 &amp;lt;U+2713&amp;gt; stringr 1.4.0## &amp;lt;U+2713&amp;gt; readr 1.3.1 &amp;lt;U+2713&amp;gt; forcats 0.4.0## -- Conflicts ---------------- tidyverse_conflicts() --## x dplyr::filter() masks stats::filter()## x dplyr::lag() masks stats::lag()library(dplyr)library(ggplot2)library(fivethirtyeight)The two datasets I chose for this project are US_births_2000_2014 and storms. The US_births_2000_2014 dataset provides detailed information about the total number of babies born in the U.</description>
+    </item>
+    
+    <item>
       <title>Projects</title>
       <link>/projects/</link>
       <pubDate>Sun, 02 Oct 2016 22:55:05 -0400</pubDate>
@@ -31,24 +49,6 @@ Genomic analysis is yet another example of a task made easier through the use of
   Project 1
   Project 2
   </description>
-    </item>
-    
-    <item>
-      <title>Exploratory Data Analysis</title>
-      <link>/project1/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      
-      <guid>/project1/</guid>
-      <description>library(tidyverse)## -- Attaching packages ------------- tidyverse 1.3.0 --## &amp;lt;U+2713&amp;gt; ggplot2 3.2.1 &amp;lt;U+2713&amp;gt; purrr 0.3.3## &amp;lt;U+2713&amp;gt; tibble 2.1.3 &amp;lt;U+2713&amp;gt; dplyr 0.8.3## &amp;lt;U+2713&amp;gt; tidyr 1.0.0 &amp;lt;U+2713&amp;gt; stringr 1.4.0## &amp;lt;U+2713&amp;gt; readr 1.3.1 &amp;lt;U+2713&amp;gt; forcats 0.4.0## -- Conflicts ---------------- tidyverse_conflicts() --## x dplyr::filter() masks stats::filter()## x dplyr::lag() masks stats::lag()library(dplyr)library(ggplot2)library(fivethirtyeight)The two datasets I chose for this project are US_births_2000_2014 and storms. The US_births_2000_2014 dataset provides detailed information about the total number of babies born in the U.</description>
-    </item>
-    
-    <item>
-      <title>Modeling, Inference, Prediction</title>
-      <link>/project2/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      
-      <guid>/project2/</guid>
-      <description>library(dplyr)## ## Attaching package: &amp;#39;dplyr&amp;#39;## The following objects are masked from &amp;#39;package:stats&amp;#39;:## ## filter, lag## The following objects are masked from &amp;#39;package:base&amp;#39;:## ## intersect, setdiff, setequal, unionlibrary(tidyverse)## -- Attaching packages ------------- tidyverse 1.3.0 --## &amp;lt;U+2713&amp;gt; ggplot2 3.2.1 &amp;lt;U+2713&amp;gt; purrr 0.3.3## &amp;lt;U+2713&amp;gt; tibble 2.1.3 &amp;lt;U+2713&amp;gt; stringr 1.4.0## &amp;lt;U+2713&amp;gt; tidyr 1.0.0 &amp;lt;U+2713&amp;gt; forcats 0.4.0## &amp;lt;U+2713&amp;gt; readr 1.3.1## -- Conflicts ---------------- tidyverse_conflicts() --## x dplyr::filter() masks stats::filter()## x dplyr::lag() masks stats::lag()library(glmnet)## Loading required package: Matrix## ## Attaching package: &amp;#39;Matrix&amp;#39;## The following objects are masked from &amp;#39;package:tidyr&amp;#39;:## ## expand, pack, unpack## Loaded glmnet 3.</description>
     </item>
     
   </channel>

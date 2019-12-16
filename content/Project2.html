@@ -1,0 +1,333 @@
+---
+title: "Modeling, Inference, Prediction"
+author: "Kaleb Combs kec2746"
+date: "11/17/2019"
+output: html_document
+---
+
+
+
+<pre class="r"><code>library(dplyr)</code></pre>
+<pre><code>## 
+## Attaching package: &#39;dplyr&#39;</code></pre>
+<pre><code>## The following objects are masked from &#39;package:stats&#39;:
+## 
+##     filter, lag</code></pre>
+<pre><code>## The following objects are masked from &#39;package:base&#39;:
+## 
+##     intersect, setdiff, setequal, union</code></pre>
+<pre class="r"><code>library(tidyverse)</code></pre>
+<pre><code>## -- Attaching packages ------------- tidyverse 1.3.0 --</code></pre>
+<pre><code>## &lt;U+2713&gt; ggplot2 3.2.1     &lt;U+2713&gt; purrr   0.3.3
+## &lt;U+2713&gt; tibble  2.1.3     &lt;U+2713&gt; stringr 1.4.0
+## &lt;U+2713&gt; tidyr   1.0.0     &lt;U+2713&gt; forcats 0.4.0
+## &lt;U+2713&gt; readr   1.3.1</code></pre>
+<pre><code>## -- Conflicts ---------------- tidyverse_conflicts() --
+## x dplyr::filter() masks stats::filter()
+## x dplyr::lag()    masks stats::lag()</code></pre>
+<pre class="r"><code>library(glmnet)</code></pre>
+<pre><code>## Loading required package: Matrix</code></pre>
+<pre><code>## 
+## Attaching package: &#39;Matrix&#39;</code></pre>
+<pre><code>## The following objects are masked from &#39;package:tidyr&#39;:
+## 
+##     expand, pack, unpack</code></pre>
+<pre><code>## Loaded glmnet 3.0-2</code></pre>
+<pre class="r"><code>library(lmtest)</code></pre>
+<pre><code>## Loading required package: zoo</code></pre>
+<pre><code>## 
+## Attaching package: &#39;zoo&#39;</code></pre>
+<pre><code>## The following objects are masked from &#39;package:base&#39;:
+## 
+##     as.Date, as.Date.numeric</code></pre>
+<pre class="r"><code>library(sandwich)
+library(MASS)</code></pre>
+<pre><code>## 
+## Attaching package: &#39;MASS&#39;</code></pre>
+<pre><code>## The following object is masked from &#39;package:dplyr&#39;:
+## 
+##     select</code></pre>
+<pre class="r"><code>library(ggplot2)
+library(plotROC)
+library(knitr)
+opts_chunk$set(fig.align=&quot;center&quot;, fig.height=5, message=FALSE, warning=FALSE, fig.width=8, tidy.opts=list(width.cutoff=60),tidy=TRUE)
+class_diag&lt;-function(probs,truth){
+  tab&lt;-table(factor(probs&gt;.5,levels=c(&quot;FALSE&quot;,&quot;TRUE&quot;)),truth)
+  acc=sum(diag(tab))/sum(tab)
+  sens=tab[2,2]/colSums(tab)[2]
+  spec=tab[1,1]/colSums(tab)[1]
+  ppv=tab[2,2]/rowSums(tab)[2]
+  if(is.numeric(truth)==FALSE &amp; is.logical(truth)==FALSE) truth&lt;-as.numeric(truth)-1
+  ord&lt;-order(probs, decreasing=TRUE)
+  probs &lt;- probs[ord]; truth &lt;- truth[ord]
+  TPR=cumsum(truth)/max(1,sum(truth)) 
+  FPR=cumsum(!truth)/max(1,sum(!truth))
+  dup&lt;-c(probs[-1]&gt;=probs[-length(probs)], FALSE)
+  TPR&lt;-c(0,TPR[!dup],1); FPR&lt;-c(0,FPR[!dup],1)
+  n &lt;- length(TPR)
+  auc&lt;- sum( ((TPR[-1]+TPR[-n])/2) * (FPR[-1]-FPR[-n]) )
+  data.frame(acc,sens,spec,ppv,auc)
+}</code></pre>
+<p>Aids2 is a dataset that contains information about patients diagnosed with AIDS in Australia before July 1, 1991. The categorical variables are: state, sex, status, and T.categ. State is the region in which the diagnosis took place and includes: NSW (New South Wales), Other, QLD (Queensland), and VIC (Victoria). Other includes WA (Western Australia), SA (South Australia), NT (Northern Territory), and TAS (Tasmania). Sex is the sex of the patient (male/female). Status refers to the patients condition and includes “A” (Alive) or “D” (Dead). Lastly, T.categ is the reported transmission category, but the categories have not been clearly defined. The four numeric variables are: diag, death, age, and length. Diag is the Julian date in which the patient was diagnosed. Death is the Julian date in which the patient died (if applicable). Age is the patients age at diagnosis. Length is how long a patient lives after receiving an AIDS diagnosis. I’m interested in working with this dataset because AIDS is a devestating condition that has impacted millions of people worldwide. I plan to use this dataset to primarily learn more about AIDS patients’ longevity and which demographic were most affected in Australia before July 1, 1991.</p>
+<p>Patients diagnosed with AIDS are entering the final stage of HIV - Human Immunodeficiency Virus. Although there is currently no cure for AIDS, early intervention can vastly improve the patient’s quality of life. Given this, let’s perform a MANOVA to simulatneously test whether patients’ date of diagnosis or age differs by state. If there’s a difference in the average date of diagnosis between states, this could reveal potentially important information about the patient population. An earlier average diagnosis date in one region compared to another, for instance, may be suggestive of better access to healthcare, socioeconomic status, or how well that particular population monitors their condition.</p>
+<pre class="r"><code>Aids2%&gt;%mutate(length=death-diag)-&gt;Aids2
+manova(cbind(diag, age)~state, data=Aids2)-&gt;y
+summary(y)</code></pre>
+<pre><code>##             Df    Pillai approx F num Df den Df  Pr(&gt;F)  
+## state        3 0.0055169   2.6177      6   5678 0.01552 *
+## Residuals 2839                                           
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<pre class="r"><code>summary.aov(y)</code></pre>
+<pre><code>##  Response diag :
+##               Df     Sum Sq Mean Sq F value   Pr(&gt;F)   
+## state          3    5619030 1873010   4.781 0.002513 **
+## Residuals   2839 1112220076  391765                    
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+##  Response age :
+##               Df Sum Sq Mean Sq F value Pr(&gt;F)
+## state          3    123  41.025  0.4049 0.7495
+## Residuals   2839 287684 101.333</code></pre>
+<pre class="r"><code>Aids2%&gt;%group_by(state)%&gt;%summarize(mean(diag), mean(age))</code></pre>
+<pre><code>## # A tibble: 4 x 3
+##   state `mean(diag)` `mean(age)`
+##   &lt;fct&gt;        &lt;dbl&gt;       &lt;dbl&gt;
+## 1 NSW         10550.        37.5
+## 2 Other       10646.        37.3
+## 3 QLD         10620.        37.6
+## 4 VIC         10648.        37.0</code></pre>
+<pre class="r"><code>pairwise.t.test(Aids2$diag, Aids2$state, p.adj=&quot;none&quot;)</code></pre>
+<pre><code>## 
+##  Pairwise comparisons using t tests with pooled SD 
+## 
+## data:  Aids2$diag and Aids2$state 
+## 
+##       NSW    Other  QLD   
+## Other 0.0247 -      -     
+## QLD   0.1167 0.6536 -     
+## VIC   0.0011 0.9661 0.5701
+## 
+## P value adjustment method: none</code></pre>
+<pre class="r"><code>1-.95^9</code></pre>
+<pre><code>## [1] 0.3697506</code></pre>
+<pre class="r"><code>.05/9</code></pre>
+<pre><code>## [1] 0.005555556</code></pre>
+<p>A one-way MANOVA was performed to examine the effect of patient state on two dependent variables: age and date of diagnosis. Our null hypothesis is that for date of diagnosis and age, the means of each state are equal. Significant differences were found among the four states on the two dependent measures (p-value &lt; .05). Two ANOVAs were conducted as follow-up tests to the MANOVA (one for each dependent variable). The univariate ANOVA for date of diagnosis was significant while the univariate ANOVA for age was no longer significant. Post hoc analysis was done to find out which states differed in date of diagnosis. Altogether, 9 hypothesis tests were conducted: one one-way MANOVA, two ANOVAs, and six t-tests. The probability of at least one type 1 error without correction is .3697. To keep the type 1 error rate at .05, a new level of significance (.05/9 = .0055) was used. Only 1 post hoc test was significant after applying the Bonferroni correction: NSW and VIC. These two states are significantly different in terms of average date of patient diagnosis. MANOVA assumptions: random samples, independent observations, dependent variables have multivariate normality, linear relationships between dependent variables, no extreme outliers, and the dependent variables should not be too correlated. Yes, the assumptions are likely to have been met given large sample size, minmal outliers, and the lack of correlation between diagnosis date and patient age.</p>
+<p>Given that there’s a significant difference between when patients are diagnosed with AIDS by state, can a patient’s sex impact longevity (their length of life after diagnosis)? To examine this relationship, we can perform a randomization test and then compare the results to an independent samples t-test. If our assumptions are violated, the randomization test will be more accurate. Otherwise, the welch two sample t-test will hold more statistical power. Before performing the test, it’s reasonable to expect that patients who receive an earlier diagnosis will have a longer life afterwards.</p>
+<pre class="r"><code>Aids2%&gt;%group_by(sex)%&gt;%summarize(means=mean(length))%&gt;%summarize(mean_diff=diff(means))%&gt;%abs</code></pre>
+<pre><code>## # A tibble: 1 x 1
+##   mean_diff
+##       &lt;dbl&gt;
+## 1      31.1</code></pre>
+<pre class="r"><code>Aids2%&gt;%group_by(sex)%&gt;%count</code></pre>
+<pre><code>## # A tibble: 2 x 2
+## # Groups:   sex [2]
+##   sex       n
+##   &lt;fct&gt; &lt;int&gt;
+## 1 F        89
+## 2 M      2754</code></pre>
+<pre class="r"><code>rand_dist&lt;-vector()
+for(i in 1:5000){
+    new&lt;-data.frame(length=sample(Aids2$length),sex=Aids2$sex)
+    rand_dist[i]&lt;-mean(new[new$sex==&quot;M&quot;,]$length)-
+        mean(new[new$sex==&quot;F&quot;,]$length)}
+{hist(rand_dist,main=&quot;&quot;,ylab=&quot;&quot;); abline(v = 31.1,col=&quot;red&quot;)}</code></pre>
+<p><img src="/Project2_files/figure-html/unnamed-chunk-3-1.png" width="768" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>mean(rand_dist&gt;31.1)*2</code></pre>
+<pre><code>## [1] 0.4232</code></pre>
+<pre class="r"><code>t.test(data=Aids2, length~sex)</code></pre>
+<pre><code>## 
+##  Welch Two Sample t-test
+## 
+## data:  length by sex
+## t = 0.65754, df = 91.85, p-value = 0.5125
+## alternative hypothesis: true difference in means is not equal to 0
+## 95 percent confidence interval:
+##  -62.82135 125.00347
+## sample estimates:
+## mean in group F mean in group M 
+##        436.0449        404.9539</code></pre>
+<p>Our test statistic for the randomization test is the true mean difference in the length of life for men and women (31.1). The null hypothesis for this test is that the mean length of life after diagnosis is the same for men and women. The alternative hypothesis is that the mean length of life after diagnosis is different for men and women. After several iterations, the p-value is ~.425, which is greater than .05. so we fail to reject the null hypothesis and conclude that the true difference in mean length of life between male and female AIDS patients within this dataset is equal to zero. Here, the p-value is the probability of getting a mean difference of 31.1 after splitting the outcome data into all possible random groupings of n=89 and n=2754, and then calculating the mean difference each time. If we compare the results of this randomization test to a welch two sample t-test, the p-value (.513) is again much larger than the level of significance (.05) so we fail to reject the null hypothesis.</p>
+<p>To continue the discussion of patient longevity, does the effect of age on length of life differ by sex? This relationship can be depicted through linear regression. Here, we’ll be using the interaction of age and sex as predictors to explain the variation we observe in patient length of life.</p>
+<pre class="r"><code>Aids2$age_c&lt;-Aids2$age-mean(Aids2$age)
+fit&lt;-lm(length ~ sex * age_c, data=Aids2)
+summary(fit)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = length ~ sex * age_c, data = Aids2)
+## 
+## Residuals:
+##    Min     1Q Median     3Q    Max 
+## -667.9 -268.4  -87.0  175.0 2025.4 
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)  441.059     38.391  11.488  &lt; 2e-16 ***
+## sexM         -36.207     39.006  -0.928  0.35335    
+## age_c         -6.064      2.194  -2.764  0.00575 ** 
+## sexM:age_c     2.265      2.306   0.982  0.32605    
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 361.8 on 2839 degrees of freedom
+## Multiple R-squared:  0.01287,    Adjusted R-squared:  0.01183 
+## F-statistic: 12.34 on 3 and 2839 DF,  p-value: 5.123e-08</code></pre>
+<pre class="r"><code>qplot(x = age_c, y = length, color = sex, data = Aids2) +stat_smooth(method = &quot;lm&quot;, se = FALSE, fullrange = TRUE)</code></pre>
+<p><img src="/Project2_files/figure-html/unnamed-chunk-4-1.png" width="768" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>resids&lt;-fit$residuals; fitvals&lt;-fit$fitted.values
+ggplot()+geom_point(aes(fitvals,resids))+geom_hline(yintercept=0, col=&quot;red&quot;)</code></pre>
+<p><img src="/Project2_files/figure-html/unnamed-chunk-4-2.png" width="768" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>ggplot()+geom_histogram(aes(resids),bins=20)</code></pre>
+<p><img src="/Project2_files/figure-html/unnamed-chunk-4-3.png" width="768" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>coeftest(fit, vcov=vcovHC(fit))</code></pre>
+<pre><code>## 
+## t test of coefficients:
+## 
+##             Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept) 441.0594    46.5132  9.4825  &lt; 2e-16 ***
+## sexM        -36.2071    47.0149 -0.7701  0.44129    
+## age_c        -6.0644     2.6224 -2.3125  0.02082 *  
+## sexM:age_c    2.2650     2.7272  0.8305  0.40631    
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<pre class="r"><code>shapiro.test(resids)</code></pre>
+<pre><code>## 
+##  Shapiro-Wilk normality test
+## 
+## data:  resids
+## W = 0.88312, p-value &lt; 2.2e-16</code></pre>
+<p>The expected length of life for a sexless patient that is zero years old is 441.06 days. If a patient is male, they are expected to live 36.21 days less than females. For every 1 year increase in patient age, expected length of life following diagnosis decreases by ~ 6.06 days. Given that the p-value is lower than .05, age explains a significant amount of the variation in longevity. The slopes for males and females are not significantly different. Residuals were plotted to test the assumption of linearity and homoskedasticity. Considering that the dots show a fanning pattern, these assumtions are not met. A histogram was used to test for normality. It is severely right skewed, suggesting that this distribution is not normal. A Shapiro-Wilk normality test was conducted to formally test the assumption of normality. The p-value was much lower than .05, suggesting strong evidence against the null hypothesis that the distribution is normal. After recomputing regression results with robust standard errors, age remained a significant predictor in variation. However, the values for standard error have all increased. Using the adjusted R squared value from the summary above, the proportion of the variation in the outcome explained by ‘fit’ is .0118. In other words, only 1.18% of the variation observed in patient longevity can be explained by the interaction of age and sex.</p>
+<p>The above model computes summary statistics for the entire dataset. However, this is only a sample from a much larger patient population. Bootstrapping can be used to estimate population parameters. Above, we used an initial sample to calculate a parameter of interest (standard error), and then assumed that the true value of this parameter fell within its margin of error. Here, we’re using the dataset to randomly sample with replacement. Each sample will have its own SE. Averaging the SE values from the bootstrap samples will yield a value closer than our initial SE estimate to the true population SE.</p>
+<pre class="r"><code>samp_distn&lt;-replicate(5000, {
+ boot_dat&lt;-boot_dat&lt;-Aids2[sample(nrow(Aids2),replace=TRUE),]
+ fit&lt;-lm(length ~ sex * age_c, data=boot_dat)
+ coef(fit)
+})
+samp_distn%&gt;%t%&gt;%as.data.frame%&gt;%summarize_all(sd)</code></pre>
+<pre><code>##   (Intercept)     sexM    age_c sexM:age_c
+## 1    46.21861 46.70819 2.541707   2.653606</code></pre>
+<p>In comparison to the original SEs, the bootstrapped SEs have all increased. This should be expected since the p-value has also increased. As we randomly sample with replacement, we move closer to the true popoulation parameter. In comparison to the robust SEs, two values increased and two values decreased.</p>
+<p>Earlier, we found that age was a significant predictor for variation in length of life among men and women. Given the importance of age in patient outcome, can this variable be used in addition to transmission category to successfully classify patient status? Logistic regression can be used to model the probability of survival given T.categ and age as predictors by categorizing patients who fall above a threshold of .5 as “A” (alive) and those who do not as “D” (dead).</p>
+<pre class="r"><code>Aids2%&gt;%mutate(y=ifelse(status==&quot;A&quot;,1,0))-&gt;Aids2
+glm(y~T.categ+age, data=Aids2, family=&quot;binomial&quot;)-&gt;fit
+Aids2$logit&lt;-predict(fit,type=&quot;link&quot;)
+Aids2%&gt;%ggplot()+geom_density(aes(logit,color=status,fill=status), alpha=.4)+theme(legend.position=c(.85,.85))+geom_vline(xintercept=0)+xlab(&quot;predictor (logit)&quot;)</code></pre>
+<p><img src="/Project2_files/figure-html/unnamed-chunk-6-1.png" width="768" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>exp(coef(fit))%&gt;%round(4)%&gt;%as.matrix()</code></pre>
+<pre><code>##                 [,1]
+## (Intercept)   0.8192
+## T.categhsid   0.9322
+## T.categid     2.3833
+## T.categhet    2.3473
+## T.categhaem   0.9188
+## T.categblood  0.4076
+## T.categmother 1.6686
+## T.categother  1.2739
+## age           0.9921</code></pre>
+<pre class="r"><code>prob&lt;-predict(fit, type=&quot;response&quot;)
+adat&lt;-Aids2%&gt;%mutate(prob=predict(fit, type=&quot;response&quot;), prediction=ifelse(prob&gt;.5,1,0))
+classify&lt;-adat%&gt;%transmute(prob,prediction,truth=y)
+table(prediction=classify$prediction,truth=classify$truth)%&gt;%addmargins()</code></pre>
+<pre><code>##           truth
+## prediction    0    1  Sum
+##        0   1722 1025 2747
+##        1     39   57   96
+##        Sum 1761 1082 2843</code></pre>
+<pre class="r"><code>class_diag(prob, Aids2$y)</code></pre>
+<pre><code>##         acc       sens      spec     ppv       auc
+## 1 0.6257474 0.05268022 0.9778535 0.59375 0.5393117</code></pre>
+<pre class="r"><code>ROCplot&lt;-ggplot(classify)+geom_roc(aes(d=truth,m=prob), n.cuts=0)
+ROCplot</code></pre>
+<p><img src="/Project2_files/figure-html/unnamed-chunk-6-2.png" width="768" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>calc_auc(ROCplot)</code></pre>
+<pre><code>##   PANEL group       AUC
+## 1     1    -1 0.5393117</code></pre>
+<pre class="r"><code>set.seed(1200)
+k=10
+data1&lt;-Aids2[sample(nrow(Aids2)),]
+folds&lt;-cut(seq(1:nrow(Aids2)),breaks=k,labels=F)
+diags&lt;-NULL
+for(i in 1:k){
+ train&lt;-data1[folds!=i,]
+ test&lt;-data1[folds==i,]
+ truth&lt;-test$y
+ fit&lt;-glm(y~T.categ+age,data=train,family=&quot;binomial&quot;)
+ probs&lt;-predict(fit,newdata = test,type=&quot;response&quot;)
+ diags&lt;-rbind(diags,class_diag(probs,truth))
+}
+apply(diags,2,mean) </code></pre>
+<pre><code>##        acc       sens       spec        ppv        auc 
+## 0.62504201 0.05223211 0.97711232 0.57666667 0.52898901</code></pre>
+<p>The odds of survival for someone zero years old who has been placed in the T.categ ‘hs’ is .8192. Holding age constant, the odds of survival for a patient in the id transmission category is 2.38 times the odds for hs. This interpretation can be repeated for all categories. Holding transmission category constant, a 1 unit increase in age increases the odds of survival by a factor of .9921. Sensitivity is the true positive rate (TPR/recall) - the probability of classifying the patient as alive if they survived. In this case, the TPR is .0527 which means that our current classification model (using sex and transmission category as predictors) gives a 5.27% chance of successfully classfiying patients who survived as alive. Specificity is the true negative rate (TNR). Our current model gives a 97.79% chance of successfully classifying patients who died as dead. Accuracy is the sum of the true negatives (1722) and true positives (57) divided by the total number of predictions made (2843). In this case, our model has an accuracy of .6257 - 62.57% of the patients that survived and died were successfully placed in their respective categories. Precision (PPV) is .5938. AUC quantifies how well we are predicting overall. We can interpret the AUC as the probability that a randomly selected person with AIDS has a higher prediction of survival than a randomly selected person without aids. Here, the AUC is .5393 which suggests very poor classifier performance. Our current model has roughly the same predictive power as a model that randomly assigns 0’s and 1’s to patients without consideration of the predictors that were used in the original model. With cross-validation, our goal is to test our current models ability to predict new data that was not used to estimate it. Out of sample accuracy and sensitivity/recall are .6244 and .051, respectively. Since these values are approximately equal to the values before CV, the original model was likely not overfitting.</p>
+<p>The above model provided valuable information about the how well certain predictors were able to classify patient survival. These predictors, however, may not have been the most important for that particular variable. To improve prediction accuracy, we can use LASSO - a regression method that involves penalizing the absolute size of the regression coefficients. As a result, only the most important predictors are included in the resulting 10 fold CV model. Below, classifier performance is compared across various models that utilize a different number of variables to predict sex.</p>
+<pre class="r"><code>glm(sex~., data=Aids2, family=&quot;binomial&quot;)-&gt;fitCV
+prob&lt;-predict(fitCV, type=&quot;response&quot;)
+class_diag(prob, Aids2$sex)</code></pre>
+<pre><code>##         acc      sens      spec       ppv       auc
+## M 0.9708055 0.9963689 0.1797753 0.9740859 0.9706127</code></pre>
+<pre class="r"><code>set.seed(1200)
+k=10
+data1&lt;-Aids2[sample(nrow(Aids2)),]
+folds&lt;-cut(seq(1:nrow(Aids2)),breaks=k,labels=F)
+diags&lt;-NULL
+for(i in 1:k){
+ train&lt;-data1[folds!=i,]
+ test&lt;-data1[folds==i,]
+ truth&lt;-test$sex
+ fit&lt;-glm(sex~.,data=train,family=&quot;binomial&quot;)
+ probs&lt;-predict(fit,newdata = test,type=&quot;response&quot;)
+ diags&lt;-rbind(diags,class_diag(probs,truth))
+}
+diags%&gt;%summarize_all(mean)</code></pre>
+<pre><code>##         acc      sens      spec       ppv       auc
+## 1 0.9651816 0.9923829 0.1174481 0.9722564 0.9585261</code></pre>
+<pre class="r"><code>y&lt;-as.matrix(Aids2$status)
+x&lt;-model.matrix(fitCV)
+as.data.frame(x)-&gt;x
+select&lt;-dplyr::select
+x%&gt;%select(-&quot;(Intercept)&quot;)-&gt;x
+as.matrix(x)-&gt;x 
+scale(x)-&gt;x
+cv.glmnet(x, y, family=&quot;binomial&quot;)-&gt;cv
+lasso1&lt;-glmnet(x,y,family=&quot;binomial&quot;, lambda=cv$lambda.1se)
+coef(lasso1)</code></pre>
+<pre><code>## 19 x 1 sparse Matrix of class &quot;dgCMatrix&quot;
+##                        s0
+## (Intercept)    1.99313321
+## stateOther     .         
+## stateQLD       .         
+## stateVIC       .         
+## diag           .         
+## death          .         
+## statusD        7.09117038
+## T.categhsid    .         
+## T.categid      .         
+## T.categhet     .         
+## T.categhaem    .         
+## T.categblood   .         
+## T.categmother  .         
+## T.categother   .         
+## age            .         
+## length         .         
+## age_c          .         
+## y             -0.02325959
+## logit          .</code></pre>
+<pre class="r"><code>set.seed(1200)
+k=10
+data1&lt;-Aids2[sample(nrow(Aids2)),]
+folds&lt;-cut(seq(1:nrow(Aids2)),breaks=k,labels=F)
+diags&lt;-NULL
+for(i in 1:k){
+ train&lt;-data1[folds!=i,]
+ test&lt;-data1[folds==i,]
+ truth&lt;-test$sex
+ fit&lt;-glm(sex~status,data=train,family=&quot;binomial&quot;)
+ probs&lt;-predict(fit,newdata = test,type=&quot;response&quot;)
+ diags&lt;-rbind(diags,class_diag(probs,truth))
+}
+apply(diags,2,mean)</code></pre>
+<pre><code>##       acc      sens      spec       ppv       auc 
+## 0.9686990 1.0000000 0.0000000 0.9686990 0.4775274</code></pre>
+<p>Under logistic regression, all variables (aside from sex) are included in the model. We then use this model to perform cross validation. After putting the explanatory and response variables in a separate matrix and identifying the non-zero coefficients from LASSO, a CV model was run in order to compare classifier accuracy between the models (one that included all predictors versus one that included only the most important predictors). Only the variables statusD and y were non-zero. Since y just assigns a 1 for alive and 0 for dead, these two variables are essentially the same predictor and thus only statusD was included in the final CV model. The AUC when predicting sex from all other variables under logistic regression is .9706, which is very high. If, however, we perform a 10 fold CV with this same model, the AUC drops to .4605. The significant drop in AUC suggests that our original model was overfitting. After LASSO, constructing a new model that uses only one variable (status) and performing a 10 fold CV with it brings the AUC back up to .9658. In comparison to the out-of-sample accuracy for the logistic regression that used T.categ and age as predictors (part 5), the accuracy for this model is much higher at .9652. This suggests that T.categ and age are not all that great at predicting patient status, but status is very good at predicting patient sex.</p>

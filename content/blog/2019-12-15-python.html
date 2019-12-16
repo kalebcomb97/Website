@@ -10,13 +10,13 @@ description: ''
 
 
 
-<p>Recent python work:</p>
+<p>Python is the world’s most popular programming language that can be used to accomplish a variety of different tasks such as machine learning, artificial intelligence, web development, data analysis, and much more!</p>
+<p>Genomic analysis is yet another example of a task made easier through the use of python. If, for instance, someone were conducting research on a gene related to the development of cancer and wanted to learn more about its protein composition, the function below demonstrates that python can not only list the number of unique codons within each sequence, but indicate the frequency of each codon occurrence. Pretty helpful!</p>
 <pre class="python"><code>my_seq1 = &quot;ATCATCATG&quot;
 my_seq2 = &quot;CAGCCCAATCAGGCTCTACTGCCACTAAACTTACGCAGGATATATTTACGCCGACGTACT&quot;
 
 def mers(sequence):
         hold = {}
-        
         for i in range(len(sequence) - 1):
             if sequence[i:i + 3] in hold:
                 hold[sequence[i:i +3]] +=1
